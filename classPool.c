@@ -24,7 +24,7 @@ void freeClassPool(ClassPool *a)
 	a->used = a->size = 0;
 }
 
-void createClassPoolEntry(ClassPool *pool, int classId)
+void createClassPoolEntry(ClassPool *pool, int classId, int refSlots)
 {
 	if (pool->size > classId)
 	{
@@ -36,10 +36,10 @@ void createClassPoolEntry(ClassPool *pool, int classId)
 		pool->classPool = realloc(pool->classPool, pool->size*sizeof(binClass));
 	}
 	binClass newClass;
+	newClass.referenceSlots = refSlots;
+	memset(newClass.staticRefs, 1, 128);
 	pool->classPool[classId] = newClass;
 	pool->used += 1;
-	binClass *cp = &(pool->classPool[classId]);
-	printf("\n%" PRIu64 "\n", cp);
 }
 
 void writeStaticObjectRefToClass(ClassPool *pool, int classId, int slot, uint64_t objRef)
@@ -48,7 +48,10 @@ void writeStaticObjectRefToClass(ClassPool *pool, int classId, int slot, uint64_
 	printf("\nvalue at slot %d : %" PRIu64 "\n", slot, getRefFromMem(&pool->classPool[classId].staticRefs[slot]));
 }
 
-void readRefFromClass();
+void readRefFromClass(ClassPool *pool, int classId, int slot)
+{
+
+}
 
 void printClass(ClassPool *pool, int classId)
 {
@@ -56,7 +59,7 @@ void printClass(ClassPool *pool, int classId)
 	printf("\nStaticRefs : ");
 	for (int i = 0; i < 16; i++)
 	{
-		printf("%d\t", pool->classPool[classId].staticRefs[i]);
+		printf("%d\t", pool->classPool[classId].staticRefs[8*i]);
 	}
 	
 }

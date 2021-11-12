@@ -8,7 +8,7 @@ void addObjectRefToRoot(RootSet *RS, int objId)
     if(RS->size == RS->used)
     {
         RS->size += 1;
-        RS->rootSet = malloc(RS->size * sizeof(uint64_t));
+        RS->rootSet = realloc(RS->rootSet, RS->size * sizeof(uint64_t));
     }
     RS->rootSet[RS->used++] = objId;
 }

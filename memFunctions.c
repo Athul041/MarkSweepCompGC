@@ -41,7 +41,7 @@ uint64_t getRefFromMem(unsigned char *memPtr)
     return num;
 }
 
-void addIntValueToMem(unsigned char* source, signed int num)
-{
-    pushIntToMem(source, getIntFromMem(source)+num);
-}
+// void addIntValueToMem(unsigned char* source, signed int num)
+// {
+//     pushIntToMem(source, getIntFromMem(source)+num);
+// }

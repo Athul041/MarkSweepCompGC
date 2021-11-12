@@ -3,14 +3,16 @@
 
 uint64_t getObjRefFromHeap(unsigned char *heap, uint64_t heapHead, int objId)
 {
-    int scanner = 0;
+    uint64_t scanner = 0;
     while(scanner < heapHead)
     {
-        if(getIntFromMem(&heap[scanner + 4]) == objId)
+        int objAtScanner = getIntFromMem(&heap[scanner + 4]);
+        if(objAtScanner == objId)
         {
             return scanner;
         }
-        scanner += getIntFromMem(&heap[scanner]) + 16;
+        int size = getIntFromMem(&heap[scanner]);
+        scanner += size + 16;
     }
 }
 
@@ -25,11 +27,16 @@ void allocateObject(unsigned char *heap, int objId, int size, int refSlots, uint
     pushIntToMem(&heap[*heapHead + 4], objId);
     pushIntToMem(&heap[*heapHead + 8], classId);
     pushIntToMem(&heap[*heapHead + 12], 0);
-    heapHead += 16 + refSlots*8;
+    for(int i=0;i<refSlots;i++)
+    {
+        pushRefToMem(&heap[*heapHead + 16 + i*8], 1);
+    }
+    *heapHead += 16 + size;
 }
 
 void readRefFromObj(unsigned char *heap, int objId, int slot, uint64_t heapHead)
 {
+    uint64_t objRef = getObjRefFromHeap(heap, heapHead, objId);
 
 }
 
@@ -40,9 +47,9 @@ void printObject(unsigned char *heap, int objId, uint64_t heapHead)
     int size = getIntFromMem(&heap[objRef]);
     printf("\n\tSize %d", size);
     printf("\n\tClassId %d",getIntFromMem(&heap[objRef + 8]));
-    printf("\nReferences : ");
-    for(int i=0; i<size; i++)
+    printf("\n\tReferences :");
+    for(int i=0; (i*8)<size; i++)
     {
-        printf("%" PRIu64 "\t", getIntFromMem(&heap[objRef + 8]));
+        printf("%" PRIu64 "\t", getRefFromMem(&heap[objRef + 16 + 8*i]));
     }
 }
