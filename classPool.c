@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <inttypes.h>
 #include "classPool.h"
 #include "MemFunctions.h"
@@ -26,26 +27,25 @@ void freeClassPool(ClassPool *a)
 
 void createClassPoolEntry(ClassPool *pool, int classId, int refSlots)
 {
-	if (pool->size > classId)
+	if (pool->size <= pool->used)
 	{
-		return;
+		pool->size = pool->size + 1;
+		pool->classPool = realloc(pool->classPool, pool->size*sizeof(binClass));
 	}
-	else
+	if (pool->size <= classId)
 	{
 		pool->size = classId + 1;
 		pool->classPool = realloc(pool->classPool, pool->size*sizeof(binClass));
 	}
-	binClass newClass;
-	newClass.referenceSlots = refSlots;
-	memset(newClass.staticRefs, 1, 128);
-	pool->classPool[classId] = newClass;
-	pool->used += 1;
+	pool->classPool[classId].referenceSlots = refSlots;
+	memset(&(pool->classPool[classId].staticRefs), 0, 128);
+	pool->used += 1; 
 }
 
 void writeStaticObjectRefToClass(ClassPool *pool, int classId, int slot, uint64_t objRef)
 {
 	pushRefToMem(&pool->classPool[classId].staticRefs[8*slot], objRef);
-	printf("\nvalue at slot %d : %" PRIu64 "\n", slot, getRefFromMem(&pool->classPool[classId].staticRefs[slot]));
+	// printf("\nvalue at slot %d : %" PRIu64 "\n", slot, getRefFromMem(&pool->classPool[classId].staticRefs[slot]));
 }
 
 void readRefFromClass(ClassPool *pool, int classId, int slot)

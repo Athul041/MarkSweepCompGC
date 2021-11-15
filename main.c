@@ -1,9 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h> 
 #include <string.h>
-#include "classPool.h"
 #include "ObjectReference.h"
-#include "RootSet.h"
+#include "GarbageCollector.h"
 
 int getArgPayload(char *str, char arg)
 {
@@ -26,7 +25,7 @@ int main(int argc, char *argv[])
     if(argc > 2)
     {
         sz = atoi(argv[2]);
-        printf("\nheapSize %d", sz);
+        // printf("\nheapSize %d", sz);
     }
     if(sz == 0)
     {
@@ -46,18 +45,18 @@ int main(int argc, char *argv[])
     if(argc > 1)
     {
         fileName = argv[1];
-        printf("\nfilename %s", argv[1]);
+        // printf("\nfilename %s", argv[1]);
     }
     if(strlen(fileName) == 0)
     {
-        printf("Trace is not given\n");
+        printf("\nTrace is not given\n");
         exit(0);
     }
 
-    FILE *f1 = fopen(fileName, "rb");
+    FILE *f1 = fopen(fileName, "r");
     if (!f1)
     {
-        printf("Could not read file\n");
+        printf("\nCould not read file\n");
         exit(0);
     }
 
@@ -70,14 +69,13 @@ int main(int argc, char *argv[])
     long filesize = ftell(f1);
     fseek(f1, 0 ,SEEK_SET);
 
-    char *request;
-    fgets(request, filesize, f1);
-
+    char request[100];
     int objectsAllocated = 0;
+    int garbageCollected = 0;
     
-    while(request != NULL)
+    while(fgets(request, 100, f1) != NULL)
     {
-        printf("\nrequest :%s", request);
+        // printf("\nrequest :%s", request);
         char command = request[0];
         int classId;
         int objId;
@@ -93,21 +91,27 @@ int main(int argc, char *argv[])
                 objId = getArgPayload(request, 'O');
                 size = getArgPayload(request, 'S');
                 refSlots = getArgPayload(request, 'N');
+                if(heapHead + 16 + size >= sz)
+                {
+                    garbageCollected += 1;
+                    // printf("\nG%d", garbageCollected);
+                    runGarbageCollector(heap, &heapHead, sz, &CP, &RS, objectsAllocated, garbageCollected);
+                }
                 createClassPoolEntry(&CP, classId, refSlots);
-                allocateObject(heap, objId, size, refSlots, &heapHead, classId);
+                allocateObject(heap, objId, size, refSlots, &heapHead, classId);                
                 objectsAllocated++;
                 break;
             case('+'):
                 objId = getArgPayload(request, 'O');
-                addObjectRefToRoot(&RS, objId);
-                printRootSet(&RS);
+                addObjectRefToRoot(&RS, objId, heap, heapHead);
+                // printRootSet(&RS);
                 break;
             case('w'):
                 objId = getArgPayload(request, 'P');
                 slot = getArgPayload(request, '#');
                 refId = getArgPayload(request, 'O');
                 writeObjectRefToObject(heap, objId, slot, refId, heapHead);
-                printObject(heap, objId, heapHead);
+                // printObject(heap, objId, heapHead);
                 break;
             case('c'):
                 classId = getArgPayload(request, 'C');
@@ -115,7 +119,7 @@ int main(int argc, char *argv[])
                 objId = getArgPayload(request, 'O');
                 objRef = getObjRefFromHeap(heap, heapHead, objId);
                 writeStaticObjectRefToClass(&CP, classId, slot, objRef);
-                printClass(&CP, classId);
+                // printClass(&CP, classId);
                 break;
             case('r'):
                 if(request[2]=='C')
@@ -133,19 +137,26 @@ int main(int argc, char *argv[])
                 break;
             case('-'):
                 objId = getArgPayload(request, 'O');
-                deleteObjectRefFromRoot(&RS, objId);
-                printRootSet(&RS);
+                char a;
+                // scanf("%c", &a);
+                objRef = getObjRefFromHeap(heap, heapHead, objId);
+                deleteObjectRefFromRoot(&RS, objRef);
+                // printRootSet(&RS);
+                // scanf("%c", &a);
                 break;
-        }
-        if(heapHead >= sz)
-        {
-            printf("\nHeap Full!");
-            runGarbageCollector();
         }
         // char a;
         // scanf("%c", &a);
+        if(heapHead >= sz)
+        {
+            garbageCollected += 1;
+            // printf("\nG%d", garbageCollected);
+            runGarbageCollector(heap, &heapHead, sz, &CP, &RS, objectsAllocated, garbageCollected);
+        }
         fgets(request, filesize, f1);
     }
-    // runGarbageCollector();
+    garbageCollected += 1;
+    // printf("\nG%d", garbageCollected);
+    runGarbageCollector(heap, &heapHead, sz, &CP, &RS, objectsAllocated, garbageCollected);
     fclose(f1);
 }

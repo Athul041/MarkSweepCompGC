@@ -1,3 +1,5 @@
+#ifndef CLASSPOOL_H
+#define CLASSPOOL_H
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
@@ -19,3 +21,5 @@ extern void freeClassPool(ClassPool *a);
 extern void writeStaticObjectRefToClass(ClassPool *pool, int classId, int slot, uint64_t objRef);
 extern void readRefFromClass();
 extern void printClass(ClassPool *pool, int classId);
+
+#endif

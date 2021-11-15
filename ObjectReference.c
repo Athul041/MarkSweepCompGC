@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "MemFunctions.h"
 
 uint64_t getObjRefFromHeap(unsigned char *heap, uint64_t heapHead, int objId)
@@ -27,10 +28,7 @@ void allocateObject(unsigned char *heap, int objId, int size, int refSlots, uint
     pushIntToMem(&heap[*heapHead + 4], objId);
     pushIntToMem(&heap[*heapHead + 8], classId);
     pushIntToMem(&heap[*heapHead + 12], 0);
-    for(int i=0;i<refSlots;i++)
-    {
-        pushRefToMem(&heap[*heapHead + 16 + i*8], 1);
-    }
+    memset(&heap[*heapHead + 16], 0, refSlots*8);
     *heapHead += 16 + size;
 }
 

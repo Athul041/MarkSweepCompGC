@@ -2,24 +2,30 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "RootSet.h"
+#include "ObjectReference.h"
 
-void addObjectRefToRoot(RootSet *RS, int objId)
+void addObjectRefToRoot(RootSet *RS, int objId, unsigned char *heap, uint64_t heapHead)
 {
     if(RS->size == RS->used)
     {
         RS->size += 1;
         RS->rootSet = realloc(RS->rootSet, RS->size * sizeof(uint64_t));
     }
-    RS->rootSet[RS->used++] = objId;
+    RS->rootSet[RS->used] = getObjRefFromHeap(heap, heapHead, objId);
+    RS->used += 1;
 }
 
-void deleteObjectRefFromRoot(RootSet *RS, int objId)
+void deleteObjectRefFromRoot(RootSet *RS, uint64_t objref)
 {
-    for(int i=0; i < RS->size; i++)
+    // printRootSet(RS);
+    // printf("\n objRef %" PRIu64, objref);
+    for(int i=RS->size-1; i >= 0; i--)
     {
-        if(RS->rootSet[i] == objId)
+        if(RS->rootSet[i] == objref)
         {
-            RS->rootSet[i] == -1;
+            // printf("\n index %d", i);
+            RS->rootSet[i] = 0;
+            // printRootSet(RS);
             return;
         }
     }
@@ -28,6 +34,7 @@ void deleteObjectRefFromRoot(RootSet *RS, int objId)
 void initRootSet(RootSet *RT, int size)
 {
     RT->size = size;
+    RT->used = 0;
     RT->rootSet = malloc(size * sizeof(uint64_t));
 }
 
