@@ -91,14 +91,16 @@ int main(int argc, char *argv[])
                 objId = getArgPayload(request, 'O');
                 size = getArgPayload(request, 'S');
                 refSlots = getArgPayload(request, 'N');
+                // printf("\n heapHead %" PRId64, heapHead);
                 if(heapHead + 16 + size >= sz)
                 {
                     garbageCollected += 1;
                     // printf("\nG%d", garbageCollected);
+                    // printf("\nrequest :%s", request);
                     runGarbageCollector(heap, &heapHead, sz, &CP, &RS, objectsAllocated, garbageCollected);
                 }
                 createClassPoolEntry(&CP, classId, refSlots);
-                allocateObject(heap, objId, size, refSlots, &heapHead, classId);                
+                allocateObject(heap, objId, size, refSlots, &heapHead, classId);           
                 objectsAllocated++;
                 break;
             case('+'):
@@ -111,7 +113,6 @@ int main(int argc, char *argv[])
                 slot = getArgPayload(request, '#');
                 refId = getArgPayload(request, 'O');
                 writeObjectRefToObject(heap, objId, slot, refId, heapHead);
-                // printObject(heap, objId, heapHead);
                 break;
             case('c'):
                 classId = getArgPayload(request, 'C');
@@ -145,18 +146,10 @@ int main(int argc, char *argv[])
                 // scanf("%c", &a);
                 break;
         }
-        // char a;
-        // scanf("%c", &a);
-        if(heapHead >= sz)
-        {
-            garbageCollected += 1;
-            // printf("\nG%d", garbageCollected);
-            runGarbageCollector(heap, &heapHead, sz, &CP, &RS, objectsAllocated, garbageCollected);
-        }
-        fgets(request, filesize, f1);
     }
     garbageCollected += 1;
-    // printf("\nG%d", garbageCollected);
+    // printf("\nFinal GC");
     runGarbageCollector(heap, &heapHead, sz, &CP, &RS, objectsAllocated, garbageCollected);
+    printf("\nExecution Complete");
     fclose(f1);
 }

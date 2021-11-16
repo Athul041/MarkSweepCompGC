@@ -5,6 +5,7 @@
 #include <inttypes.h>
 
 typedef struct {
+	int init;
 	int referenceSlots;
 	unsigned char staticRefs[128];
 } binClass;

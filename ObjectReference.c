@@ -1,19 +1,18 @@
 #include <stdio.h>
 #include <string.h>
 #include "MemFunctions.h"
+#include "classPool.h"
 
 uint64_t getObjRefFromHeap(unsigned char *heap, uint64_t heapHead, int objId)
 {
     uint64_t scanner = 0;
     while(scanner < heapHead)
     {
-        int objAtScanner = getIntFromMem(&heap[scanner + 4]);
-        if(objAtScanner == objId)
+        if(getIntFromMem(&heap[scanner + 4]) == objId)
         {
             return scanner;
         }
-        int size = getIntFromMem(&heap[scanner]);
-        scanner += size + 16;
+        scanner += getIntFromMem(&heap[scanner]) + 16;
     }
 }
 
@@ -38,15 +37,17 @@ void readRefFromObj(unsigned char *heap, int objId, int slot, uint64_t heapHead)
 
 }
 
-void printObject(unsigned char *heap, int objId, uint64_t heapHead)
+void printObject(unsigned char *heap, int objId, uint64_t heapHead, ClassPool *CP)
 {
     uint64_t objRef = getObjRefFromHeap(heap, heapHead, objId);
+    printf("\n objRef %" PRIu64, objRef);
     printf("\nObject %d",objId);
+    printf("\nMarked %d",getIntFromMem(&heap[objRef + 12]));
     int size = getIntFromMem(&heap[objRef]);
     printf("\n\tSize %d", size);
     printf("\n\tClassId %d",getIntFromMem(&heap[objRef + 8]));
-    printf("\n\tReferences :");
-    for(int i=0; (i*8)<size; i++)
+    printf("\n\tReferences %d :", CP->classPool[getIntFromMem(&heap[objRef + 8])].referenceSlots);
+    for(int i=0; i<CP->classPool[getIntFromMem(&heap[objRef + 8])].referenceSlots; i++)
     {
         printf("%" PRIu64 "\t", getRefFromMem(&heap[objRef + 16 + 8*i]));
     }

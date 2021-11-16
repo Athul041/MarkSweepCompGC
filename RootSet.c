@@ -43,6 +43,9 @@ void printRootSet(RootSet *RS)
     printf("\nRootSet : ");
     for(int i=0; i < RS->size; i++)
     {
-        printf("%d\t", RS->rootSet[i]);
+        if (RS->rootSet[i] != 0)
+        {
+            printf("%" PRIu64"\t", RS->rootSet[i]);
+        }
     }
 }

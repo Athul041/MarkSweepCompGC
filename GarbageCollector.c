@@ -95,13 +95,13 @@ int updateReferences(unsigned char *heap, size_t end, ClassPool *CP, ReferenceTr
     {
         for (int j = 0; j < 16; j++)
         {
-            uint64_t ref = getRefFromMem(&(CP->classPool[i].staticRefs[j]));
+            uint64_t ref = getRefFromMem(&(CP->classPool[i].staticRefs[8*j]));
             if(ref != 0)
             {
                 int rtId = getReferenceTraceIndex(RT, ref);
                 if (rtId != -1)
                 {
-                    pushRefToMem(&(CP->classPool[i].staticRefs[j]), RT->refTrace[rtId].newLoc);
+                    pushRefToMem(&(CP->classPool[i].staticRefs[8*j]), RT->refTrace[rtId].newLoc);
                     count += 1;
                 }
             }
@@ -129,16 +129,19 @@ int updateReferences(unsigned char *heap, size_t end, ClassPool *CP, ReferenceTr
 uint64_t relocate(unsigned char *heap, size_t end, ReferenceTraceTable *RT)
 {
     uint64_t scan = 0;
+    uint64_t free = 0;
     while(scan < end)
     {
         int rtId = getReferenceTraceIndex(RT, scan);
+        int size = getIntFromMem(&heap[scan]);
         if (rtId != -1)
         {
-            memcpy(&heap[RT->refTrace[rtId].newLoc], &heap[scan], getIntFromMem(&heap[scan]));
+            memcpy(&heap[free], &heap[scan], getIntFromMem(&heap[scan]) + 16);
+            free = RT->refTrace[rtId].newLoc + size + 16;
         }
-        scan += 16 + getIntFromMem(&heap[scan]);
+        scan += 16 + size;
     }
-    return scan;
+    return free;
 }
     
 void mark(uint64_t root, unsigned char *heap, uint64_t heapHead, ClassPool *CP, int *liveObjects, ReferenceTraceTable *RT)
@@ -147,10 +150,19 @@ void mark(uint64_t root, unsigned char *heap, uint64_t heapHead, ClassPool *CP, 
     {
         return;
     }
+    // printf("\n root %" PRIu64, root);
     pushIntToMem(&heap[root + 12], 1);
+    // printObject(heap, getIntFromMem(&heap[root + 4]), heapHead, CP);
     addToReferenceTable(RT, getIntFromMem(&heap[root + 4]), root);
     int classId = getIntFromMem(&heap[root + 8]);
+    // printf("\n classId %d", classId);
     int refSlots = CP->classPool[classId].referenceSlots;
+    // if (getIntFromMem(&heap[root + 4]) == 997)
+    // {
+    //     printObject(heap, getIntFromMem(&heap[root + 4]), heapHead, CP);
+    //     char a;
+    //     scanf("%c", &a);
+    // }
     for(int i=0;i<refSlots;i++)
     {
         uint64_t ref = getRefFromMem(&(heap[root + 16 + i*8]));
@@ -159,6 +171,7 @@ void mark(uint64_t root, unsigned char *heap, uint64_t heapHead, ClassPool *CP, 
             mark(ref, heap, heapHead, CP, liveObjects, RT);
         }
     }
+    // printf("\n Obj Mark complete");
     for(int i=0;i<16;i++)
     {
         uint64_t ref = getRefFromMem(&(CP->classPool[classId].staticRefs[i*8]));
@@ -167,6 +180,7 @@ void mark(uint64_t root, unsigned char *heap, uint64_t heapHead, ClassPool *CP, 
             mark(ref, heap, heapHead, CP, liveObjects, RT);
         }
     }
+    // printf("\n Static Mark complete");
     *liveObjects += 1;
 }
 
@@ -179,6 +193,7 @@ void initReferenceTable(ReferenceTraceTable *RT, int size)
 
 void runGarbageCollector(unsigned char *heap, uint64_t *heapHead, size_t heapSize, ClassPool *CP, RootSet *RS, int objectsAllocated, int garbageCollected)
 {
+    // printf("\n Running GC..");
     int liveObjects = 0;
     int deadObjects = 0;
     float heapFree = 0.0;
@@ -212,12 +227,14 @@ void runGarbageCollector(unsigned char *heap, uint64_t *heapHead, size_t heapSiz
         printf("\nOut of Memory!");
         exit(0);
     }
-    // printf("\n Relocation Complete.\nNew heapHead %" PRIu64, *heapHead);
+    // printRefTable(&RT);
+    // printf("\n New heapHead %" PRIu64 "\n", *heapHead);
     heapFree = (float)(heapSize - *heapHead)*100/heapSize;
     // printf("\n HeapFree %.2f", heapFree);
     deadObjects = objectsAllocated - liveObjects;
 
-    printf("\nG%d LO%d DO%d HF%%%.2f UR%d", garbageCollected, liveObjects, deadObjects, heapFree, updatedReferences);
+    printf("G%d LO%d DO%d HF%%%.2f UR%d\n", garbageCollected, liveObjects, deadObjects, heapFree, updatedReferences);
+    // printObject(heap, 997, *heapHead, CP);
     // char a;
     // scanf("%c", &a);
 }

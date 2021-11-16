@@ -37,8 +37,13 @@ void createClassPoolEntry(ClassPool *pool, int classId, int refSlots)
 		pool->size = classId + 1;
 		pool->classPool = realloc(pool->classPool, pool->size*sizeof(binClass));
 	}
+	if(pool->classPool[classId].init == 1)
+	{
+		return;
+	}
 	pool->classPool[classId].referenceSlots = refSlots;
 	memset(&(pool->classPool[classId].staticRefs), 0, 128);
+	pool->classPool[classId].init = 1;
 	pool->used += 1; 
 }
 
@@ -59,7 +64,7 @@ void printClass(ClassPool *pool, int classId)
 	printf("\nStaticRefs : ");
 	for (int i = 0; i < 16; i++)
 	{
-		printf("%d\t", pool->classPool[classId].staticRefs[8*i]);
+		printf("%" PRIu64 "\t", getRefFromMem(&(pool->classPool[classId].staticRefs[8*i])));
 	}
 	
 }
