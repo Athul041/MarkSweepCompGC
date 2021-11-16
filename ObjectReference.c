@@ -14,6 +14,11 @@ uint64_t getObjRefFromHeap(unsigned char *heap, uint64_t heapHead, int objId)
         }
         scanner += getIntFromMem(&heap[scanner]) + 16;
     }
+    if(scanner >= heapHead)
+    {
+        printf("\n Object %d does not exist on Heap", objId);
+        exit(0);
+    }
 }
 
 void writeObjectRefToObject(unsigned char *heap, int objId, int slot, int refId, uint64_t heapHead)
