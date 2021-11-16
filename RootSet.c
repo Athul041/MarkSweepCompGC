@@ -19,7 +19,8 @@ void deleteObjectRefFromRoot(RootSet *RS, uint64_t objref)
 {
     // printRootSet(RS);
     // printf("\n objRef %" PRIu64, objref);
-    for(int i=RS->size-1; i >= 0; i--)
+    int i;
+    for(i=RS->size-1; i >= 0; i--)
     {
         if(RS->rootSet[i] == objref)
         {
@@ -41,7 +42,8 @@ void initRootSet(RootSet *RT, int size)
 void printRootSet(RootSet *RS)
 {
     printf("\nRootSet : ");
-    for(int i=0; i < RS->size; i++)
+    int i;
+    for(i=0; i < RS->size; i++)
     {
         if (RS->rootSet[i] != 0)
         {

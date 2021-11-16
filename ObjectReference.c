@@ -52,7 +52,8 @@ void printObject(unsigned char *heap, int objId, uint64_t heapHead, ClassPool *C
     printf("\n\tSize %d", size);
     printf("\n\tClassId %d",getIntFromMem(&heap[objRef + 8]));
     printf("\n\tReferences %d :", CP->classPool[getIntFromMem(&heap[objRef + 8])].referenceSlots);
-    for(int i=0; i<CP->classPool[getIntFromMem(&heap[objRef + 8])].referenceSlots; i++)
+    int i;
+    for(i=0; i<CP->classPool[getIntFromMem(&heap[objRef + 8])].referenceSlots; i++)
     {
         printf("%" PRIu64 "\t", getRefFromMem(&heap[objRef + 16 + 8*i]));
     }

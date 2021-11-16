@@ -62,7 +62,8 @@ void printClass(ClassPool *pool, int classId)
 {
 	printf("\nClassId %d",classId);
 	printf("\nStaticRefs : ");
-	for (int i = 0; i < 16; i++)
+	int i;
+	for (i = 0; i < 16; i++)
 	{
 		printf("%" PRIu64 "\t", getRefFromMem(&(pool->classPool[classId].staticRefs[8*i])));
 	}
